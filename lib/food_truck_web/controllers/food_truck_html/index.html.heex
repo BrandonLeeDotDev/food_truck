@@ -1,0 +1,114 @@
+<h1>Food Truck Finder</h1>
+<!-- 
+For brevity a form was used. Usually you would want to use fetch. An API is available simply by using 
+POST and passing params
+
+EX:
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"latitude": "37.7749", "longitude": "-122.4194", "distance": "5000", "food_items": "bread"}' \
+  http://localhost:4000/
+
+Additionally the use of cookeis aand providing sorting methods, a drop-down of pre-poped names, a rating system, 
+user visit history, etc would foster a better user experience.
+-->
+<.form for={@conn.params} action={~p"/"} method="get" id="search-form">
+  <div style="display: none;">
+    <input type="text" id="longitude" name="longitude" value={@conn.params["longitude"]} />
+  </div>
+  <div style="display: none;">
+    <input type="text" id="latitude" name="latitude" value={@conn.params["latitude"]} />
+  </div>
+  <!---------------------------------------------------------------------------------------->
+  <div>
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" value={@conn.params["name"]} />
+  </div>
+  <div>
+    <label for="food_items">Food Items:</label>
+    <input type="text" id="food_items" name="food_items" placeholder="Use '&' to combine items, and ',' to seperate them..." value={@conn.params["food_items"]} />
+  </div>
+  <div class="toggle-container">
+    <label for="rand_results_checkbox" class="toggle-label">
+      <div class="toggle-switch">
+        <input
+          type="checkbox"
+          id="rand_results_checkbox"
+          class="toggle-input"
+          checked={@conn.params["rand_results"] == "1"}
+          data-debug="rand_results_checkbox"
+        />
+        <input
+          type="hidden"
+          id="rand_results"
+          name="rand_results"
+          value={@conn.params["rand_results"] || "0"}
+          data-debug="rand_results_hidden"
+        />
+        <span class={["toggle-slider", @conn.params["rand_results"] == "1" && "checked"]}></span>
+      </div>
+      Randomize Results
+    </label>
+  </div>
+  <br />
+  <div class="toggle-container">
+    <label for="geo_on_checkbox" class="toggle-label">
+     
+      <div class={"toggle-switch #{if @conn.params["geo_on"] == "1", do: "checked", else: ""}"}>
+        <input
+          type="checkbox"
+          id="geo_on_checkbox"
+          class="toggle-input"
+          checked={@conn.params["geo_on"] == "1"}
+          data-debug="geo_on_checkbox"
+        />
+        <input
+          type="hidden"
+          id="geo_on"
+          name="geo_on"
+          value={@conn.params["geo_on"] || "0"}
+          data-debug="geo_on_hidden"
+        />
+        <span class={["toggle-slider", @conn.params["geo_on"] == "1" && "checked"]}></span>
+      </div>
+       Use my location
+    </label>
+  </div>
+  <!-- We dont show distance till they accept geo ip use -->
+  <div id="distance_containter" style={"#{if (@conn.params["geo_on"] == "0" || !@conn.params["geo_on"]), do: "display: none;", else: ""}"}>
+    <label for="distance">Limit Distance to (mi):</label>
+    <input type="number" id="distance" name="distance" value={@conn.params["distance"]} />
+  </div>
+  <button type="submit" id="search-button">Search</button>
+</.form>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Permit Status</th>
+      <th>Type</th>
+      <th>Address</th>
+      <!-- We dont show distance till they accept geo ip use -->
+      <%= if @conn.params["latitude"] != "" && @conn.params["longitude"] != "" && @conn.params["latitude"] && @conn.params["longitude"]  do %>
+        <th id="distance_th">Distance (mi)</th>
+      <% end %>
+      <th>Food Items</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= for truck <- @trucks do %>
+      <tr>
+        <td><%= truck["Applicant"] %></td>
+        <td><%= truck["Status"] %></td>
+        <td><%= truck["FacilityType"] %></td>
+        <td><%= truck["Address"] %></td>
+        <!-- We dont show distance till they accept geo ip use -->
+        <%= if @conn.params["latitude"] != "" && @conn.params["longitude"] != "" && truck["distance"] do %>
+          <td class="distance_td"><%= Float.round(truck["distance"], 2) %></td>
+        <% end %>
+        <td><%= truck["FoodItems"] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
